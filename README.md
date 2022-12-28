@@ -46,3 +46,4 @@ The script requires the [cURL library](https://curl.haxx.se/) to be installed on
 ## Credits
 
 Special thanks to [OJ](https://github.com/OJ) and [Christian Mehlmauer](https://github.com/firefart) for creating Gobuster, which served as inspiration for this script.
+
