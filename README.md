@@ -1,6 +1,6 @@
 # CSearch
 
-This C script is a simple tool for brute-forcing URLs. It was developed as a way to practice the C programming language and to create a simpler version of [Gobuster](https://github.com/OJ/gobuster).
+This C script is a simple tool for brute-forcing URLs and subdomains. It was developed as a way to practice the C programming language and to create a simpler version of [Gobuster](https://github.com/OJ/gobuster).
 <br><br>
 
 ---
@@ -17,16 +17,20 @@ This will create an executable file called cbrute that you can run with the ./cb
 
 Note that you may need to install the `gcc` compiler and the `curl` development package (usually called `libcurl-dev` or `libcurl-devel`) on your system in order to compile the script.
 
-To use the script, provide the base URL and a list of words to try as arguments:
+To use the script, follow the examples below.
 
 ```bash
-./csearch http://example.com /usr/share/wordlists/dirb/common.txt
+To brute force an URL :
+    ./csearch dir -u http://example.com -w /usr/share/wordlists/dirb/common.txt
+
+To brute force subdomains :
+    ./csearch dns -u example.com -w /usr/share/wordlists/dirb/common.txt
 ```
 
 The script will then try each word in the list as a URL extension and report whether the page exists or not.
 <br><br>
 
-![csearch](./img/csearch.png)
+![csearch](./img/csearchv1.1.png)
 
 <br><br>
 

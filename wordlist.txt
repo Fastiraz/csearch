@@ -1,6 +1,14 @@
 docs
+cloud
 themes
+maps
 panel
 shell
+www
 admin
+media
+mail
 packages
+translate
+traefik
+earth

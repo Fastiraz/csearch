@@ -2,7 +2,7 @@
  ===============================================================================
  Name        : csearch.c
  Author      : Fastiraz
- Version     : 1.0
+ Version     : 1.1
  Copyright   : Your copyright notice
  Description : A simple tool for brute-forcing URLs in C.
  Compile     : gcc -o csearch csearch.c -lcurl
@@ -11,40 +11,81 @@
  */
 
 /*============================================================================*/
+/* For Dir */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <curl/curl.h>
 #include <time.h>
+
+/* For DNS */
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
 /*============================================================================*/
 
 /*============================================================================*/
-int search(char *url, char *word);
+#define MAX_WORD_LEN 100
+#define MAX_URL_LEN 200
+/*============================================================================*/
+
+/*============================================================================*/
+int dir(char *url, char *word);
 void remove_n(char *str);
 void banner();
 void info();
 void start();
 void end();
+void help();
+int dns(char *url, char *word);
 /*============================================================================*/
 
 /*============================================================================*/
 int main(int argc, char **argv)
 {
+  // Set default values for the base URL and wordlist file
+  char *base_url = "http://example.com/";
+  char *wordlist = "wordlist.txt";
+  char *algo = "dir";
+
+  // Parse the command-line arguments
+  for (int i = 1; i < argc; i++) {
+      if (strcmp(argv[i], "-u") == 0 && i + 1 < argc) {
+          base_url = argv[++i];
+      } else if (strcmp(argv[i], "-w") == 0 && i + 1 < argc) {
+          wordlist = argv[++i];
+      } else if (strcmp(argv[i], "dir") == 0 && i + 1 < argc) {
+          algo = argv[i];
+      } else if (strcmp(argv[i], "dns") == 0 && i + 1 < argc) {
+          algo = argv[i];
+      } else {
+          fprintf(stderr, "Usage: %s -u url -w wordlist\n", argv[0]);
+          return 1;
+      }
+  }
   banner();
-  info(argv[1], argv[2]);
+  info(base_url, wordlist);
   start();
   char *line = NULL;
   size_t len = 0;
   ssize_t read;
 
-  FILE *fp = fopen(argv[2], "r");
+  FILE *fp = fopen(wordlist, "r");
   if (fp == NULL) {
     exit(EXIT_FAILURE);
   }
 
   while ((read = getline(&line, &len, fp)) != -1) {
     remove_n(line);
-    search(argv[1], line);
+    if (strcmp(algo, "dir") == 0){
+      dir(base_url, line);
+    } else if (strcmp(algo, "dns") == 0){
+      dns(base_url, line);
+    } else {
+      printf("\nUnexpected error while starting the attack.\n");
+      return 1;
+    }
+    
   }
 
   fclose(fp);
@@ -58,7 +99,7 @@ int main(int argc, char **argv)
 /*============================================================================*/
 
 /*============================================================================*/
-int search(char *url, char *word){
+int dir(char *url, char *word){
   CURL* curl;
   CURLcode res;
 
@@ -117,7 +158,7 @@ void remove_n(char *str){
 /*============================================================================*/
 void banner(){
   printf("\n\n===============================================================\n");
-  printf("CSearch v1.0.0\n");
+  printf("CSearch v1.0.1\n");
   printf("by Fastiraz\n");
   printf("===============================================================\n");
 }
@@ -176,41 +217,53 @@ void end(){
 }
 /*============================================================================*/
 
+/*============================================================================*/
+void help(){
+  printf("\nFLAGS:\n");
+  printf("\t-u : URL\n");
+  printf("\t-w : Path to the wordlist\n");
+  printf("\t-v : Verbose output (errors)\n");
+  printf("\t-h : Display this content\n");
+  printf("\nEXAMPLES:\n");
+  printf("\tUsage :\t./csearch -u http://example.com -w /usr/share/wordlists/dirb/common.txt\n");
+}
+/*============================================================================*/
 
+/*============================================================================*/
+int dns(char *domain, char *word){
+    // Allocate memory for the DNS string
+    size_t dns_len = strlen(word) + strlen(domain) + 2;
+    char *dns = malloc(dns_len);
+    if (dns == NULL) {
+        return 1;
+    }
 
-// Yes, I copied Gobuster for the output :)
+    // Concatenate the word and domain with a "." separator
+    snprintf(dns, dns_len, "%s.%s", word, domain);
 
-/*
-$ gobuster dir -u http://example.com -w /usr/share/wordlists/dirb/common.txt 
+    // Create a hints structure to specify the type of address we are interested in
+    struct addrinfo hints;
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_UNSPEC; // Allow IPv4 or IPv6
+    hints.ai_socktype = SOCK_STREAM; // Use a stream socket (TCP)
+    hints.ai_flags = AI_CANONNAME; // Request the canonical name of the host
 
-===============================================================
-Gobuster v3.0.1
-by OJ Reeves (@TheColonial) & Christian Mehlmauer (@_FireFart_)
-===============================================================
-[+] Url:            http://example.com
-[+] Threads:        10
-[+] Wordlist:       /usr/share/wordlists/dirb/common.txt
-[+] Status codes:   200,204,301,302,307,401,403
-[+] User Agent:     gobuster/3.0.1
-[+] Timeout:        10s
-===============================================================
-2020/11/22 22:02:24 Starting gobuster
-===============================================================
-/css (Status: 200)
-/js (Status: 200)
-/admin (Status: 301)
-/login (Status: 200)
-/static (Status: 301)
-/images (Status: 200)
-/fonts (Status: 200)
-/docs (Status: 200)
-/downloads (Status: 200)
-/blog (Status: 200)
-/faq (Status: 200)
-/contact (Status: 200)
-/about (Status: 200)
-/info (Status: 200)
-===============================================================
-2020/11/22 22:02:34 Finished
-===============================================================
-*/
+    // Call getaddrinfo to resolve the domain name
+    struct addrinfo *result;
+    int error = getaddrinfo(dns, NULL, &hints, &result);
+
+    if (error != 0) {
+        // getaddrinfo failed, subdomain does not exist
+        printf("Subdomain does not exist\t");
+        printf(" | \033[0;31m%s\033[0m\n", dns);
+        return 1;
+    } else {
+        // getaddrinfo succeeded, subdomain exists
+        printf("Subdomain exists\t\t");
+        printf(" | \033[0;32m%s\033[0m\n", dns);
+        return 0;
+    }
+
+    return 0;
+}
+/*============================================================================*/
