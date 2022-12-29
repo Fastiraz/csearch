@@ -6,7 +6,7 @@
  Copyright   : Your copyright notice
  Description : A simple tool for brute-forcing URLs in C.
  Compile     : gcc -o csearch csearch.c -lcurl
- Usage       : ./csearch http://example.com /usr/share/wordlists/dirb/common.txt
+ Usage       : ./csearch dir -u http://example.com -w /usr/share/wordlists/dirb/common.txt
  ===============================================================================
  */
 
@@ -58,8 +58,10 @@ int main(int argc, char **argv)
           algo = argv[i];
       } else if (strcmp(argv[i], "dns") == 0 && i + 1 < argc) {
           algo = argv[i];
+      } else if (strcmp(argv[i], "-h") == 0 && i + 1 < argc) {
+          help();
       } else {
-          fprintf(stderr, "Usage: %s -u url -w wordlist\n", argv[0]);
+          help();
           return 1;
       }
   }
@@ -219,13 +221,16 @@ void end(){
 
 /*============================================================================*/
 void help(){
+  printf("\nAVAILABLE COMMANDS:\n");
+  printf("\tdir : Uses directory/file enumeration mode\n");
+  printf("\tdns : Uses DNS subdomain enumeration mode\n");
   printf("\nFLAGS:\n");
   printf("\t-u : URL\n");
   printf("\t-w : Path to the wordlist\n");
   printf("\t-v : Verbose output (errors)\n");
   printf("\t-h : Display this content\n");
   printf("\nEXAMPLES:\n");
-  printf("\tUsage :\t./csearch -u http://example.com -w /usr/share/wordlists/dirb/common.txt\n");
+  printf("\tUsage :\t./csearch dir -u http://example.com -w /usr/share/wordlists/dirb/common.txt\n\n");
 }
 /*============================================================================*/
 
