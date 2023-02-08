@@ -30,7 +30,7 @@ To brute force subdomains :
 The script will then try each word in the list as a URL extension and report whether the page exists or not.
 <br><br>
 
-![csearch](./img/csearchv1.1.png)
+![csearch](./img/csearch-dir-dns.png)
 
 <br><br>
 
@@ -46,4 +46,3 @@ The script requires the [cURL library](https://curl.haxx.se/) to be installed on
 ## Credits
 
 Special thanks to [OJ](https://github.com/OJ) and [Christian Mehlmauer](https://github.com/firefart) for creating Gobuster, which served as inspiration for this script.
-
