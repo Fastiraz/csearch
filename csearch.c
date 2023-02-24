@@ -6,15 +6,18 @@
  Copyright   : Your copyright notice
  Description : A simple tool for brute-forcing URLs in C.
  Compile     : gcc -o csearch csearch.c -lcurl
- Usage       : ./csearch dir -u http://example.com -w /usr/share/wordlists/dirb/common.txt
+ Usage       : ./csearch http://example.com /usr/share/wordlists/dirb/common.txt
  ===============================================================================
  */
 
 /*============================================================================*/
-/* For Dir */
+/* std */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
+
+/* For Dir */
 #include <curl/curl.h>
 #include <time.h>
 
@@ -30,14 +33,14 @@
 /*============================================================================*/
 
 /*============================================================================*/
-int dir(char *url, char *word);
+int dir(char *url, char *word, bool);
 void remove_n(char *str);
 void banner();
-void info();
+void info(char*, char*, bool);
 void start();
 void end();
 void help();
-int dns(char *url, char *word);
+int dns(char *url, char *word, bool);
 /*============================================================================*/
 
 /*============================================================================*/
@@ -47,6 +50,7 @@ int main(int argc, char **argv)
   char *base_url = "http://example.com/";
   char *wordlist = "wordlist.txt";
   char *algo = "dir";
+  bool verbose = false;
 
   // Parse the command-line arguments
   for (int i = 1; i < argc; i++) {
@@ -58,15 +62,16 @@ int main(int argc, char **argv)
           algo = argv[i];
       } else if (strcmp(argv[i], "dns") == 0 && i + 1 < argc) {
           algo = argv[i];
-      } else if (strcmp(argv[i], "-h") == 0 && i + 1 < argc) {
-          help();
+      } else if (strcmp(argv[i], "-v") == 0) {
+          verbose = true;
+          //i++;
       } else {
-          help();
+          fprintf(stderr, "Usage: %s -u url -w wordlist\n", argv[0]);
           return 1;
       }
   }
   banner();
-  info(base_url, wordlist);
+  info(base_url, wordlist, verbose);
   start();
   char *line = NULL;
   size_t len = 0;
@@ -80,14 +85,14 @@ int main(int argc, char **argv)
   while ((read = getline(&line, &len, fp)) != -1) {
     remove_n(line);
     if (strcmp(algo, "dir") == 0){
-      dir(base_url, line);
+      dir(base_url, line, verbose);
     } else if (strcmp(algo, "dns") == 0){
-      dns(base_url, line);
+      dns(base_url, line, verbose);
     } else {
       printf("\nUnexpected error while starting the attack.\n");
       return 1;
     }
-    
+
   }
 
   fclose(fp);
@@ -101,7 +106,7 @@ int main(int argc, char **argv)
 /*============================================================================*/
 
 /*============================================================================*/
-int dir(char *url, char *word){
+int dir(char *url, char *word, bool verbose){
   CURL* curl;
   CURLcode res;
 
@@ -132,8 +137,10 @@ int dir(char *url, char *word){
         printf(" | \033[0;32m%s\033[0m\n", full_url);
       } else {
         // Page does not exist
-        printf("Page does not exist\t\t");
-        printf(" | \033[0;31m%s\033[0m\n", full_url);
+        if(verbose){
+          printf("Page does not exist\t\t");
+          printf(" | \033[0;31m%s\033[0m\n", full_url);
+        }
       }
     }
 
@@ -167,13 +174,14 @@ void banner(){
 /*============================================================================*/
 
 /*============================================================================*/
-void info(char *url, char *wdl){
+void info(char *url, char *wdl, bool verbose){
   printf("[+] Url:\t\t\t%s\n", url);
   printf("[+] Threads:\t\t\t1\n");
   printf("[+] Wordlist:\t\t\t%s\n", wdl);
   printf("[+] Status codes:\t\t200,204,301,302,307,401,403\n");
   printf("[+] User Agent:\t\t\tCSearch/1.0.0\n");
   printf("[+] Timeout:\t\t\t10s\n");
+  printf("[+] Verbose:\t\t\t%s\n", verbose ? "true" : "false");
 }
 /*============================================================================*/
 
@@ -221,21 +229,18 @@ void end(){
 
 /*============================================================================*/
 void help(){
-  printf("\nAVAILABLE COMMANDS:\n");
-  printf("\tdir : Uses directory/file enumeration mode\n");
-  printf("\tdns : Uses DNS subdomain enumeration mode\n");
   printf("\nFLAGS:\n");
   printf("\t-u : URL\n");
   printf("\t-w : Path to the wordlist\n");
   printf("\t-v : Verbose output (errors)\n");
   printf("\t-h : Display this content\n");
   printf("\nEXAMPLES:\n");
-  printf("\tUsage :\t./csearch dir -u http://example.com -w /usr/share/wordlists/dirb/common.txt\n\n");
+  printf("\tUsage :\t./csearch -u http://example.com -w /usr/share/wordlists/dirb/common.txt\n");
 }
 /*============================================================================*/
 
 /*============================================================================*/
-int dns(char *domain, char *word){
+int dns(char *domain, char *word, bool verbose){
     // Allocate memory for the DNS string
     size_t dns_len = strlen(word) + strlen(domain) + 2;
     char *dns = malloc(dns_len);
@@ -259,8 +264,10 @@ int dns(char *domain, char *word){
 
     if (error != 0) {
         // getaddrinfo failed, subdomain does not exist
-        printf("Subdomain does not exist\t");
-        printf(" | \033[0;31m%s\033[0m\n", dns);
+        if(verbose){
+          printf("Subdomain does not exist\t");
+          printf(" | \033[0;31m%s\033[0m\n", dns);
+        }
         return 1;
     } else {
         // getaddrinfo succeeded, subdomain exists
