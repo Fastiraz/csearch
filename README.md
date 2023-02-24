@@ -10,15 +10,13 @@ This C script is a simple tool for brute-forcing URLs and subdomains. It was dev
 Install the `curl` library for Linux and MacOS:
 
 ```bash
-apt-get install libcurl4-openssl-dev # 4 Linux
-brew install curl # 4 OSX
+apt-get install libcurl4-openssl-dev  # 4 Linux
+brew install curl                     # 4 OSX
 ```
 
 To compile the script, use the `gcc` compiler:
 
 ```bash
-apt-get install libcurl4-openssl-dev # 4 Linux
-brew install curl # 4 OSX
 gcc -o csearch csearch.c -lcurl
 ```
 
