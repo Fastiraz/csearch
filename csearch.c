@@ -2,7 +2,7 @@
  ===============================================================================
  Name        : csearch.c
  Author      : Fastiraz
- Version     : 1.1
+ Version     : 1.2
  Copyright   : Your copyright notice
  Description : A simple tool for brute-forcing URLs in C.
  Compile     : gcc -o csearch csearch.c -lcurl
