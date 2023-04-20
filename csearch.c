@@ -66,7 +66,7 @@ int main(int argc, char **argv)
           verbose = true;
           //i++;
       } else {
-          fprintf(stderr, "Usage: %s -u url -w wordlist\n", argv[0]);
+          fprintf(stderr, "Usage: %s -u url\n", argv[0]);
           return 1;
       }
   }
@@ -87,6 +87,7 @@ int main(int argc, char **argv)
     if (strcmp(algo, "dir") == 0){
       dir(base_url, line, verbose);
     } else if (strcmp(algo, "dns") == 0){
+      wordlist = "dns-wordlist.txt";
       dns(base_url, line, verbose);
     } else {
       printf("\nUnexpected error while starting the attack.\n");
@@ -124,7 +125,7 @@ int dir(char *url, char *word, bool verbose){
 
     // Perform request
     res = curl_easy_perform(curl);
-    if (res != CURLE_OK) {
+    if (res != CURLE_OK && verbose) {
       fprintf(stderr, "curl_easy_perform() failed: %s\n",
               curl_easy_strerror(res));
     } else {
@@ -231,11 +232,15 @@ void end(){
 void help(){
   printf("\nFLAGS:\n");
   printf("\t-u : URL\n");
-  printf("\t-w : Path to the wordlist\n");
+  printf("\t-w : Path to a custom wordlist\n");
   printf("\t-v : Verbose output (errors)\n");
   printf("\t-h : Display this content\n");
+  printf("\nKEYWORDS:\n");
+  printf("\tdir : Directory mode (default)");
+  printf("\tdns : Subdomain mode");
   printf("\nEXAMPLES:\n");
-  printf("\tUsage :\t./csearch -u http://example.com -w /usr/share/wordlists/dirb/common.txt\n");
+  printf("\tUsage :\t./csearch -u http://example.com/\n");
+  printf("\tUsage :\t./csearch dns -u http://example.com/ -w /usr/share/wordlist/dirb/big.txt -v\n");
 }
 /*============================================================================*/
 
