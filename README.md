@@ -1,4 +1,4 @@
-# CSearch
+# 👀 CSearch
 
 This C script is a simple tool for brute-forcing URLs and subdomains. It was developed as a way to practice the C programming language and to create a simpler version of [Gobuster](https://github.com/OJ/gobuster).
 <br><br>
@@ -20,7 +20,7 @@ To compile the script, use the `gcc` compiler:
 gcc -o csearch csearch.c -lcurl
 ```
 
-This will create an executable file called cbrute that you can run with the ./cbrute command.
+This will create an executable file called csearch that you can run with the ./csearch command.
 
 Note that you may need to install the `gcc` compiler and the `curl` development package (usually called `libcurl-dev` or `libcurl-devel`) on your system in order to compile the script.
 

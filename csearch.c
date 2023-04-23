@@ -2,7 +2,7 @@
  ===============================================================================
  Name        : csearch.c
  Author      : Fastiraz
- Version     : 1.2
+ Version     : 1.3
  Copyright   : Your copyright notice
  Description : A simple tool for brute-forcing URLs in C.
  Compile     : gcc -o csearch csearch.c -lcurl
@@ -36,11 +36,12 @@
 int dir(char *url, char *word, bool);
 void remove_n(char *str);
 void banner();
-void info(char*, char*, bool);
+void info(char*, char*, bool, char*);
 void start();
 void end();
 void help();
 int dns(char *url, char *word, bool);
+int fuzz(char *url, char *word, bool);
 /*============================================================================*/
 
 /*============================================================================*/
@@ -62,16 +63,23 @@ int main(int argc, char **argv)
           algo = argv[i];
       } else if (strcmp(argv[i], "dns") == 0 && i + 1 < argc) {
           algo = argv[i];
+      } else if (strcmp(argv[i], "fuzz") == 0 && i + 1 < argc) {
+          algo = argv[i];
       } else if (strcmp(argv[i], "-v") == 0) {
           verbose = true;
           //i++;
+      } else if (strcmp(argv[i], "-h") == 0) {
+          banner();
+          help();
+          exit(0);
       } else {
-          fprintf(stderr, "Usage: %s -u url\n", argv[0]);
+          //fprintf(stderr, "Usage: %s -u url\n", argv[0]);
+          help();
           return 1;
       }
   }
   banner();
-  info(base_url, wordlist, verbose);
+  info(base_url, wordlist, verbose, algo);
   start();
   char *line = NULL;
   size_t len = 0;
@@ -89,6 +97,8 @@ int main(int argc, char **argv)
     } else if (strcmp(algo, "dns") == 0){
       wordlist = "dns-wordlist.txt";
       dns(base_url, line, verbose);
+    } else if (strcmp(algo, "fuzz") == 0){
+      fuzz(base_url, line, verbose);
     } else {
       printf("\nUnexpected error while starting the attack.\n");
       return 1;
@@ -168,15 +178,16 @@ void remove_n(char *str){
 /*============================================================================*/
 void banner(){
   printf("\n\n===============================================================\n");
-  printf("CSearch v1.2\n");
-  printf("by Fastiraz\n");
+  printf("\tCSearch v1.3\n");
+  printf("\tby Fastiraz\n");
   printf("===============================================================\n");
 }
 /*============================================================================*/
 
 /*============================================================================*/
-void info(char *url, char *wdl, bool verbose){
+void info(char *url, char *wdl, bool verbose, char *algo){
   printf("[+] Url:\t\t\t%s\n", url);
+  printf("[+] Mode:\t\t\t%s\n", algo);
   printf("[+] Threads:\t\t\t1\n");
   printf("[+] Wordlist:\t\t\t%s\n", wdl);
   printf("[+] Status codes:\t\t200,204,301,302,307,401,403\n");
@@ -236,8 +247,9 @@ void help(){
   printf("\t-v : Verbose output (errors)\n");
   printf("\t-h : Display this content\n");
   printf("\nKEYWORDS:\n");
-  printf("\tdir : Directory mode (default)");
-  printf("\tdns : Subdomain mode");
+  printf("\tdir : Directory mode (default)\n");
+  printf("\tdns : Subdomain mode\n");
+  printf("\tfuzz : Uses fuzzing mode. Replaces the keyword FUZZ in the URL, Headers and the request body\n");
   printf("\nEXAMPLES:\n");
   printf("\tUsage :\t./csearch -u http://example.com/\n");
   printf("\tUsage :\t./csearch dns -u http://example.com/ -w /usr/share/wordlist/dirb/big.txt -v\n");
@@ -282,5 +294,59 @@ int dns(char *domain, char *word, bool verbose){
     }
 
     return 0;
+}
+/*============================================================================*/
+
+/*============================================================================*/
+int fuzz(char *url, char *word, bool verbose){
+  CURL* curl;
+  CURLcode res;
+
+  // Construct URL with replaced word
+  char full_url[256];
+  char *fuzz_ptr = strstr(url, "fuzz");
+  if (fuzz_ptr != NULL) {
+    strncpy(full_url, url, fuzz_ptr - url);
+    full_url[fuzz_ptr - url] = '\0';
+    strcat(full_url, word);
+    strcat(full_url, fuzz_ptr + 4);
+  } else {
+    strcpy(full_url, url);
+  }
+
+  curl = curl_easy_init();
+  if (curl) {
+    // Set URL
+    curl_easy_setopt(curl, CURLOPT_URL, full_url);
+
+    // Set request method to HEAD
+    curl_easy_setopt(curl, CURLOPT_NOBODY, 1L);
+
+    // Perform request
+    res = curl_easy_perform(curl);
+    if (res != CURLE_OK && verbose) {
+      fprintf(stderr, "curl_easy_perform() failed: %s\n",
+              curl_easy_strerror(res));
+    } else {
+      // Get status code
+      long status_code;
+      curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &status_code);
+      if (status_code >= 200 && status_code < 300) {
+        // Page exists
+        printf("Page exists\t\t\t");
+        printf(" | \033[0;32m%s\033[0m\n", full_url);
+      } else {
+        // Page does not exist
+        if(verbose){
+          printf("Page does not exist\t\t");
+          printf(" | \033[0;31m%s\033[0m\n", full_url);
+        }
+      }
+    }
+
+    // Clean up
+    curl_easy_cleanup(curl);
+  }
+  return 0;
 }
 /*============================================================================*/
