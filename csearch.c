@@ -2,7 +2,7 @@
  ===============================================================================
  Name        : csearch.c
  Author      : Fastiraz
- Version     : 1.3
+ Version     : 1.4
  Copyright   : Your copyright notice
  Description : A simple tool for brute-forcing URLs in C.
  Compile     : gcc -o csearch csearch.c -lcurl
@@ -17,14 +17,14 @@
 #include <string.h>
 #include <stdbool.h>
 
-/* For Dir */
-#include <curl/curl.h>
-#include <time.h>
+/* For Dir, DNS & Fuzz */
+#include "ddf.h"
 
-/* For DNS */
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
+/* For Recursive */
+#include "recursive.h"
+
+/* For stuff */
+// #include "stuff.h"
 /*============================================================================*/
 
 /*============================================================================*/
@@ -33,25 +33,25 @@
 /*============================================================================*/
 
 /*============================================================================*/
-int dir(char *url, char *word, bool);
+// int dir(char *url, char *word, bool);
 void remove_n(char *str);
 void banner();
-void info(char*, char*, bool, char*);
+void info(char*, char*, bool, char*, bool);
 void start();
 void end();
 void help();
-int dns(char *url, char *word, bool);
-int fuzz(char *url, char *word, bool);
+// int dns(char *url, char *word, bool);
+// int fuzz(char *url, char *word, bool);
 /*============================================================================*/
 
 /*============================================================================*/
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv){
   // Set default values for the base URL and wordlist file
   char *base_url = "http://example.com/";
-  char *wordlist = "wordlist.txt";
+  char *wordlist = "lists/wordlist.txt";
   char *algo = "dir";
   bool verbose = false;
+  bool recursive = false;
 
   // Parse the command-line arguments
   for (int i = 1; i < argc; i++) {
@@ -72,6 +72,9 @@ int main(int argc, char **argv)
           banner();
           help();
           exit(0);
+      } else if (strcmp(argv[i], "-r") == 0) {
+          recursive = true;
+          // printf("Recursive mode: %s", recursive ? "true" : "false");
       } else {
           //fprintf(stderr, "Usage: %s -u url\n", argv[0]);
           help();
@@ -79,7 +82,7 @@ int main(int argc, char **argv)
       }
   }
   banner();
-  info(base_url, wordlist, verbose, algo);
+  info(base_url, wordlist, verbose, algo, recursive);
   start();
   char *line = NULL;
   size_t len = 0;
@@ -93,10 +96,17 @@ int main(int argc, char **argv)
   while ((read = getline(&line, &len, fp)) != -1) {
     remove_n(line);
     if (strcmp(algo, "dir") == 0){
-      dir(base_url, line, verbose);
+      if(!recursive){
+        dir(base_url, line, verbose);
+      } else {
+        recursive_dir(base_url, wordlist, verbose);
+      }
     } else if (strcmp(algo, "dns") == 0){
-      wordlist = "dns-wordlist.txt";
-      dns(base_url, line, verbose);
+      if(!recursive){
+        dns(base_url, line, verbose);
+      } else {
+        recursive_dns(base_url, wordlist, verbose);
+      }
     } else if (strcmp(algo, "fuzz") == 0){
       fuzz(base_url, line, verbose);
     } else {
@@ -112,241 +122,6 @@ int main(int argc, char **argv)
   }
   end();
 
-  return 0;
-}
-/*============================================================================*/
-
-/*============================================================================*/
-int dir(char *url, char *word, bool verbose){
-  CURL* curl;
-  CURLcode res;
-
-  // Construct URL
-  char full_url[256];
-  sprintf(full_url, "%s%s/", url, word);
-
-  curl = curl_easy_init();
-  if (curl) {
-    // Set URL
-    curl_easy_setopt(curl, CURLOPT_URL, full_url);
-
-    // Set request method to HEAD
-    curl_easy_setopt(curl, CURLOPT_NOBODY, 1L);
-
-    // Perform request
-    res = curl_easy_perform(curl);
-    if (res != CURLE_OK && verbose) {
-      fprintf(stderr, "curl_easy_perform() failed: %s\n",
-              curl_easy_strerror(res));
-    } else {
-      // Get status code
-      long status_code;
-      curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &status_code);
-      if (status_code >= 200 && status_code < 300) {
-        // Page exists
-        printf("Page exists\t\t\t");
-        printf(" | \033[0;32m%s\033[0m\n", full_url);
-      } else {
-        // Page does not exist
-        if(verbose){
-          printf("Page does not exist\t\t");
-          printf(" | \033[0;31m%s\033[0m\n", full_url);
-        }
-      }
-    }
-
-    // Clean up
-    curl_easy_cleanup(curl);
-  }
-  return 0;
-}
-/*============================================================================*/
-
-/*============================================================================*/
-void remove_n(char *str){
-    int len = strlen(str);
-    // Loop through the string and replace \n with \0
-    for (int i = 0; i < len; i++) {
-        if (str[i] == '\n') {
-            str[i] = '\0';
-            break;
-        }
-    }
-}
-/*============================================================================*/
-
-/*============================================================================*/
-void banner(){
-  printf("\n\n===============================================================\n");
-  printf("\tCSearch v1.3\n");
-  printf("\tby Fastiraz\n");
-  printf("===============================================================\n");
-}
-/*============================================================================*/
-
-/*============================================================================*/
-void info(char *url, char *wdl, bool verbose, char *algo){
-  printf("[+] Url:\t\t\t%s\n", url);
-  printf("[+] Mode:\t\t\t%s\n", algo);
-  printf("[+] Threads:\t\t\t1\n");
-  printf("[+] Wordlist:\t\t\t%s\n", wdl);
-  printf("[+] Status codes:\t\t200,204,301,302,307,401,403\n");
-  printf("[+] User Agent:\t\t\tCSearch/1.0.0\n");
-  printf("[+] Timeout:\t\t\t10s\n");
-  printf("[+] Verbose:\t\t\t%s\n", verbose ? "true" : "false");
-}
-/*============================================================================*/
-
-/*============================================================================*/
-void start(){
-  // Get current calendar time
-  time_t current_time = time(NULL);
-
-  // Convert to local time
-  struct tm* local_time = localtime(&current_time);
-
-  // Create a buffer to hold the date and time string
-  char date_time_str[32];
-
-  // Use strftime to format the date and time
-  strftime(date_time_str, 32, "%Y/%m/%d %H:%M:%S", local_time);
-
-  // Print the date and time
-  printf("===============================================================\n");
-  printf("%s Starting CSearch...\n", date_time_str);
-  printf("===============================================================\n");
-}
-/*============================================================================*/
-
-/*============================================================================*/
-void end(){
-  // Get current calendar time
-  time_t current_time = time(NULL);
-
-  // Convert to local time
-  struct tm* local_time = localtime(&current_time);
-
-  // Create a buffer to hold the date and time string
-  char date_time_str[32];
-
-  // Use strftime to format the date and time
-  strftime(date_time_str, 32, "%Y/%m/%d %H:%M:%S", local_time);
-
-  // Print the date and time
-  printf("===============================================================\n");
-  printf("%s Finished\n", date_time_str);
-  printf("===============================================================\n\n\n");
-}
-/*============================================================================*/
-
-/*============================================================================*/
-void help(){
-  printf("\nFLAGS:\n");
-  printf("\t-u : URL\n");
-  printf("\t-w : Path to a custom wordlist\n");
-  printf("\t-v : Verbose output (errors)\n");
-  printf("\t-h : Display this content\n");
-  printf("\nKEYWORDS:\n");
-  printf("\tdir : Directory mode (default)\n");
-  printf("\tdns : Subdomain mode\n");
-  printf("\tfuzz : Uses fuzzing mode. Replaces the keyword FUZZ in the URL, Headers and the request body\n");
-  printf("\nEXAMPLES:\n");
-  printf("\tUsage :\t./csearch -u http://example.com/\n");
-  printf("\tUsage :\t./csearch dns -u http://example.com/ -w /usr/share/wordlist/dirb/big.txt -v\n");
-}
-/*============================================================================*/
-
-/*============================================================================*/
-int dns(char *domain, char *word, bool verbose){
-    // Allocate memory for the DNS string
-    size_t dns_len = strlen(word) + strlen(domain) + 2;
-    char *dns = malloc(dns_len);
-    if (dns == NULL) {
-        return 1;
-    }
-
-    // Concatenate the word and domain with a "." separator
-    snprintf(dns, dns_len, "%s.%s", word, domain);
-
-    // Create a hints structure to specify the type of address we are interested in
-    struct addrinfo hints;
-    memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_UNSPEC; // Allow IPv4 or IPv6
-    hints.ai_socktype = SOCK_STREAM; // Use a stream socket (TCP)
-    hints.ai_flags = AI_CANONNAME; // Request the canonical name of the host
-
-    // Call getaddrinfo to resolve the domain name
-    struct addrinfo *result;
-    int error = getaddrinfo(dns, NULL, &hints, &result);
-
-    if (error != 0) {
-        // getaddrinfo failed, subdomain does not exist
-        if(verbose){
-          printf("Subdomain does not exist\t");
-          printf(" | \033[0;31m%s\033[0m\n", dns);
-        }
-        return 1;
-    } else {
-        // getaddrinfo succeeded, subdomain exists
-        printf("Subdomain exists\t\t");
-        printf(" | \033[0;32m%s\033[0m\n", dns);
-        return 0;
-    }
-
-    return 0;
-}
-/*============================================================================*/
-
-/*============================================================================*/
-int fuzz(char *url, char *word, bool verbose){
-  CURL* curl;
-  CURLcode res;
-
-  // Construct URL with replaced word
-  char full_url[256];
-  char *fuzz_ptr = strstr(url, "fuzz");
-  if (fuzz_ptr != NULL) {
-    strncpy(full_url, url, fuzz_ptr - url);
-    full_url[fuzz_ptr - url] = '\0';
-    strcat(full_url, word);
-    strcat(full_url, fuzz_ptr + 4);
-  } else {
-    strcpy(full_url, url);
-  }
-
-  curl = curl_easy_init();
-  if (curl) {
-    // Set URL
-    curl_easy_setopt(curl, CURLOPT_URL, full_url);
-
-    // Set request method to HEAD
-    curl_easy_setopt(curl, CURLOPT_NOBODY, 1L);
-
-    // Perform request
-    res = curl_easy_perform(curl);
-    if (res != CURLE_OK && verbose) {
-      fprintf(stderr, "curl_easy_perform() failed: %s\n",
-              curl_easy_strerror(res));
-    } else {
-      // Get status code
-      long status_code;
-      curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &status_code);
-      if (status_code >= 200 && status_code < 300) {
-        // Page exists
-        printf("Page exists\t\t\t");
-        printf(" | \033[0;32m%s\033[0m\n", full_url);
-      } else {
-        // Page does not exist
-        if(verbose){
-          printf("Page does not exist\t\t");
-          printf(" | \033[0;31m%s\033[0m\n", full_url);
-        }
-      }
-    }
-
-    // Clean up
-    curl_easy_cleanup(curl);
-  }
   return 0;
 }
 /*============================================================================*/

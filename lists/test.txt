@@ -1,0 +1,16 @@
+docs
+cloud
+themes
+maps
+io
+panel
+shell
+www
+fastiraz
+admin
+media
+mail
+packages
+translate
+traefik
+earth
