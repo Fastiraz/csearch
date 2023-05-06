@@ -28,7 +28,7 @@ void remove_n(char *str){
 /*============================================================================*/
 void banner(){
   printf("\n\n===============================================================\n");
-  printf("\tCSearch v1.4\n");
+  printf("\tCSearch v1.5\n");
   printf("\tby Fastiraz\n");
   printf("===============================================================\n");
 }
@@ -101,6 +101,7 @@ void help(){
   printf("\t-w : Path to a custom wordlist\n");
   printf("\t-v : Verbose output (errors)\n");
   printf("\t-r : Enable recurcive mode\n");
+  printf("\t-ui: User Interface\n");
   printf("\t-h : Display this content\n");
   printf("\nKEYWORDS:\n");
   printf("\tdir : Directory mode (default)\n");

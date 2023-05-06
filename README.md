@@ -1,4 +1,4 @@
-# 👀 CSearch
+#  L👀K
 
 This C script is a simple tool for brute-forcing URLs and subdomains. It was developed as a way to practice the C programming language and to create a simpler version of [Gobuster](https://github.com/OJ/gobuster).
 <br><br>
@@ -28,15 +28,22 @@ To use the script, follow the examples below.
 
 ```bash
 To brute force an URL :
-    ./csearch dir -u http://example.com -w /usr/share/wordlists/dirb/common.txt
+    ./csearch -u http://example.com/
 
 To brute force subdomains :
     ./csearch dns -u example.com -w /usr/share/wordlists/dirb/common.txt
+
+Fuzzing mode :
+    ./csearch fuzz -u https://docs.fuzz.com/ -w /usr/share/wordlists/dirb/common.txt
+
+To use UI :
+    ./csearch -ui -u google.com -w lists/test.txt
 ```
 
 The script will then try each word in the list as a URL extension and report whether the page exists or not.
 <br><br>
 
+### DIR Mode
 ![csearch](./img/csearch-dir-dns.png)
 
 <br><br>
@@ -50,6 +57,32 @@ The script requires the [cURL library](https://curl.haxx.se/) to be installed on
 
 ---
 
-## Credits
+## HELP
 
-Special thanks to [OJ](https://github.com/OJ) and [Christian Mehlmauer](https://github.com/firefart) for creating Gobuster, which served as inspiration for this script.
+```bash
+ ➜ ./csearch -h
+
+
+
+===============================================================
+	CSearch v1.4
+	by Fastiraz
+===============================================================
+
+FLAGS:
+	-u : URL
+	-w : Path to a custom wordlist
+	-v : Verbose output (errors)
+	-r : Enable recurcive mode
+	-h : Display this content
+
+KEYWORDS:
+	dir : Directory mode (default)
+	dns : Subdomain mode
+	fuzz : Uses fuzzing mode. Replaces the keyword FUZZ in the URL, Headers and the request body
+
+EXAMPLES:
+	Usage :	./csearch -u http://example.com/
+	Usage :	./csearch dns -u http://example.com/ -w /usr/share/wordlist/dirb/big.txt -v
+  Usage : ./csearch fuzz -u https://docs.fuzz.com/ -w /usr/share/wordlists/dirb/common.txt
+```

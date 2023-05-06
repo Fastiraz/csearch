@@ -2,7 +2,7 @@
  ===============================================================================
  Name        : csearch.c
  Author      : Fastiraz
- Version     : 1.4
+ Version     : 1.5
  Copyright   : Your copyright notice
  Description : A simple tool for brute-forcing URLs in C.
  Compile     : gcc -o csearch csearch.c -lcurl
@@ -24,12 +24,17 @@
 #include "recursive.h"
 
 /* For stuff */
-// #include "stuff.h"
+#include "stuff.h"
+
+/* For user interface */
+#include "ui.h"
+#include "check.h"
 /*============================================================================*/
 
 /*============================================================================*/
 #define MAX_WORD_LEN 100
 #define MAX_URL_LEN 200
+#define MAX_PATH_LENGTH 256
 /*============================================================================*/
 
 /*============================================================================*/
@@ -55,6 +60,8 @@ int main(int argc, char **argv){
 
   // Parse the command-line arguments
   for (int i = 1; i < argc; i++) {
+      // if (argc < 2)
+      //     help();
       if (strcmp(argv[i], "-u") == 0 && i + 1 < argc) {
           base_url = argv[++i];
       } else if (strcmp(argv[i], "-w") == 0 && i + 1 < argc) {
@@ -75,6 +82,9 @@ int main(int argc, char **argv){
       } else if (strcmp(argv[i], "-r") == 0) {
           recursive = true;
           // printf("Recursive mode: %s", recursive ? "true" : "false");
+      } else if (strcmp(argv[i], "-ui") == 0) {
+          algo = menu();
+          checked_menu(&recursive, &verbose);
       } else {
           //fprintf(stderr, "Usage: %s -u url\n", argv[0]);
           help();
