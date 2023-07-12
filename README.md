@@ -75,6 +75,7 @@ FLAGS:
 	-v : Verbose output (errors)
 	-r : Enable recurcive mode
 	-h : Display this content
+	-ui: Enable the user interface
 
 KEYWORDS:
 	dir : Directory mode (default)
