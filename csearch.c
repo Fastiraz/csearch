@@ -29,6 +29,12 @@
 /* For user interface */
 #include "ui.h"
 #include "check.h"
+
+/* OSINT on username */
+#include "osint.h"
+
+/* security headers */
+#include "sechead.h"
 /*============================================================================*/
 
 /*============================================================================*/
@@ -85,12 +91,17 @@ int main(int argc, char **argv){
       } else if (strcmp(argv[i], "-ui") == 0) {
           algo = menu();
           checked_menu(&recursive, &verbose);
+      } else if (strcmp(argv[i], "-n") == 0) {
+          find(argv[++i]);
+      } else if (strcmp(argv[i], "-sh") == 0) {
+          sechead(argv[++i]);
+          return 0;
       } else {
-          //fprintf(stderr, "Usage: %s -u url\n", argv[0]);
           help();
           return 1;
       }
   }
+
   banner();
   info(base_url, wordlist, verbose, algo, recursive);
   start();
