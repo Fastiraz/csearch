@@ -46,6 +46,18 @@ The script will then try each word in the list as a URL extension and report whe
 ### DIR Mode
 ![csearch](./img/csearch-dir-dns.png)
 
+### DNS Mode
+![csearch](./img/csearch-dir-dns.png)
+
+### FUZZ Mode
+![csearch](./img/csearch-dir-dns.png)
+
+### RECURSIVE Mode
+![csearch](./img/csearch-dir-dns.png)
+
+### VERBOSE Mode
+![csearch](./img/csearch-dir-dns.png)
+
 <br><br>
 
 ---
