@@ -97,15 +97,18 @@ void end(){
 /*============================================================================*/
 void help(){
   printf("\nFLAGS:\n");
-  printf("\t-u : URL\n");
-  printf("\t-w : Path to a custom wordlist\n");
-  printf("\t-v : Verbose output (errors)\n");
-  printf("\t-r : Enable recurcive mode\n");
-  printf("\t-ui: User Interface\n");
-  printf("\t-h : Display this content\n");
+  printf("\t-u  : URL\n");
+  printf("\t-w  : Path to a custom wordlist\n");
+  printf("\t-v  : Verbose output (errors)\n");
+  printf("\t-r  : Enable recurcive mode\n");
+  printf("\t-ui : User Interface\n");
+  printf("\t-sh : Chech Security Headers\n");
+  printf("\t-n  : Search for a username on social media (osint)\n");
+  printf("\t-h  : Display this content\n");
+  printf("\t-gu : Find email address from Github username\n");
   printf("\nKEYWORDS:\n");
-  printf("\tdir : Directory mode (default)\n");
-  printf("\tdns : Subdomain mode\n");
+  printf("\tdir  : Directory mode (default)\n");
+  printf("\tdns  : Subdomain mode\n");
   printf("\tfuzz : Uses fuzzing mode. Replaces the keyword FUZZ in the URL, Headers and the request body\n");
   printf("\nEXAMPLES:\n");
   printf("\tUsage :\t./csearch -u http://example.com/\n");
