@@ -27,7 +27,7 @@ char* menu() {
   char *options[] = {"Option 1", "Option 2", "Option 3", "Exit"};
 	int options_size = sizeof(options) / sizeof(options[0]);
 
-  char *mode[] = { "Directory", "Domain", "Fuzzing", "Quit" };
+  char *mode[] = { "Directory", "Domain", "Fuzzing", "Security Header", "Quit" };
   int mode_size = sizeof(mode) / sizeof(mode[0]);
 
   while (1) {
@@ -39,12 +39,12 @@ char* menu() {
         }
         break;
       case DOWN_ARROW:
-        if (choice < 3) {
+        if (choice < 4) {
           choice++;
         }
         break;
       case ENTER:
-        if (choice == 3) {
+        if (choice == 4) {
           printf("\nI will be waiting for you here -_-\n");
           exit(0);
         } else if (choice == 0) {
@@ -53,6 +53,8 @@ char* menu() {
           return "dns";
         } else if (choice == 2) {
           return "fuzz";
+        } else if (choice == 3) {
+          return "sechead";
         } else {
           printf("Error while determine attack mode.\n");
           exit(1);
