@@ -130,6 +130,17 @@ int main(int argc, char **argv){
       }
     } else if (strcmp(algo, "fuzz") == 0){
       fuzz(base_url, line, verbose);
+    } else if (strcmp(algo, "sechead") == 0) {
+      char target[256];
+      printf("Enter the target URL: ");
+        if (fgets(target, sizeof(target), stdin) == NULL) {
+            // Handle fgets error (e.g., input too long)
+            printf("Error reading target URL\n");
+            return 1;
+        }
+      target[strcspn(target, "\n")] = '\0';
+      sechead(target);
+      return 0;
     } else {
       printf("\nUnexpected error while starting the attack.\n");
       return 1;
