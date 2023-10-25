@@ -2,7 +2,7 @@
  ===============================================================================
  Name        : csearch.c
  Author      : Fastiraz
- Version     : 1.5
+ Version     : 1.1.6
  Copyright   : Your copyright notice
  Description : A simple tool for brute-forcing URLs in C.
  Compile     : gcc -o csearch csearch.c -lcurl
@@ -57,6 +57,11 @@ void help();
 
 /*============================================================================*/
 int main(int argc, char **argv){
+  if (argc < 2) {
+    help();
+    return 1;
+  }
+
   // Set default values for the base URL and wordlist file
   char *base_url = "http://example.com/";
   char *wordlist = "lists/wordlist.txt";
@@ -66,11 +71,9 @@ int main(int argc, char **argv){
 
   // Parse the command-line arguments
   for (int i = 1; i < argc; i++) {
-      // if (argc < 2)
-      //     help();
       if (strcmp(argv[i], "-u") == 0 && i + 1 < argc) {
           base_url = argv[++i];
-      } else if (strcmp(argv[i], "-w") == 0 && i + 1 < argc) {
+      } else if (strcmp(argv[i], "-w") == 0 || strcmp(argv[i], "--wordlist") == 0 && i + 1 < argc) {
           wordlist = argv[++i];
       } else if (strcmp(argv[i], "dir") == 0 && i + 1 < argc) {
           algo = argv[i];
@@ -78,23 +81,26 @@ int main(int argc, char **argv){
           algo = argv[i];
       } else if (strcmp(argv[i], "fuzz") == 0 && i + 1 < argc) {
           algo = argv[i];
-      } else if (strcmp(argv[i], "-v") == 0) {
+      } else if (strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--verbose") == 0) {
           verbose = true;
           //i++;
       } else if (strcmp(argv[i], "-h") == 0) {
           banner();
           help();
           exit(0);
-      } else if (strcmp(argv[i], "-r") == 0) {
+      } else if (strcmp(argv[i], "-r") == 0 || strcmp(argv[i], "--recursive") == 0) {
           recursive = true;
           // printf("Recursive mode: %s", recursive ? "true" : "false");
       } else if (strcmp(argv[i], "-ui") == 0) {
           algo = menu();
           checked_menu(&recursive, &verbose);
-      } else if (strcmp(argv[i], "-n") == 0) {
+      } else if (strcmp(argv[i], "-n") == 0 || strcmp(argv[i], "--name") == 0) {
           find(argv[++i]);
-      } else if (strcmp(argv[i], "-sh") == 0) {
+      } else if (strcmp(argv[i], "-sh") == 0 || strcmp(argv[i], "--security-headers") == 0) {
           sechead(argv[++i]);
+          return 0;
+      } else if (strcmp(argv[i], "-ge") == 0 || strcmp(argv[i], "--github-email") == 0) {
+          github_email(argv[++i]);
           return 0;
       } else {
           help();
