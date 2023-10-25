@@ -5,6 +5,16 @@ This C script is a simple tool for brute-forcing URLs and subdomains. It was dev
 
 ---
 
+## Features
+
+- URL Fuzzer
+- DNS Fuzzer
+- Security Headers Check
+- Github email address recovery
+- Recursive mode for URL and DNS Fuzzer
+- Verbose mode
+- User Interface to launch attacks
+
 ## Usage
 
 Install the `curl` library for Linux and MacOS:
@@ -36,8 +46,17 @@ To brute force subdomains :
 Fuzzing mode :
     ./csearch fuzz -u https://docs.fuzz.com/ -w /usr/share/wordlists/dirb/common.txt
 
+To check security headers from an URL
+	./csearch -sh http://example.com/
+
 To use UI :
     ./csearch -ui -u google.com -w lists/test.txt
+
+To find email address from Github username
+	./csearch -ge username
+
+To track someone on internet with a username
+	./csearch -n username
 ```
 
 The script will then try each word in the list as a URL extension and report whether the page exists or not.
