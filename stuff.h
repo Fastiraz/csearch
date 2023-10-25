@@ -28,7 +28,7 @@ void remove_n(char *str){
 /*============================================================================*/
 void banner(){
   printf("\n\n===============================================================\n");
-  printf("\tCSearch v1.5\n");
+  printf("\tCSearch v1.1.6\n");
   printf("\tby Fastiraz\n");
   printf("===============================================================\n");
 }
@@ -42,7 +42,7 @@ void info(char *url, char *wdl, bool verbose, char *algo, bool recursive){
   printf("[+] Threads:\t\t\t1\n");
   printf("[+] Wordlist:\t\t\t%s\n", wdl);
   printf("[+] Status codes:\t\t200,204,301,302,307,401,403\n");
-  printf("[+] User Agent:\t\t\tCSearch/1.0.0\n");
+  printf("[+] User Agent:\t\t\tCSearch/1.1.6\n");
   printf("[+] Timeout:\t\t\t10s\n");
   printf("[+] Verbose:\t\t\t%s\n", verbose ? "true" : "false");
   printf("[+] Recursive:\t\t\t%s\n", recursive ? "true" : "false");
@@ -95,24 +95,37 @@ void end(){
 
 
 /*============================================================================*/
-void help(){
-  printf("\nFLAGS:\n");
-  printf("\t-u  : URL\n");
-  printf("\t-w  : Path to a custom wordlist\n");
-  printf("\t-v  : Verbose output (errors)\n");
-  printf("\t-r  : Enable recurcive mode\n");
-  printf("\t-ui : User Interface\n");
-  printf("\t-sh : Chech Security Headers\n");
-  printf("\t-n  : Search for a username on social media (osint)\n");
-  printf("\t-h  : Display this content\n");
-  printf("\t-gu : Find email address from Github username\n");
-  printf("\nKEYWORDS:\n");
-  printf("\tdir  : Directory mode (default)\n");
-  printf("\tdns  : Subdomain mode\n");
-  printf("\tfuzz : Uses fuzzing mode. Replaces the keyword FUZZ in the URL, Headers and the request body\n");
-  printf("\nEXAMPLES:\n");
-  printf("\tUsage :\t./csearch -u http://example.com/\n");
-  printf("\tUsage :\t./csearch dns -u http://example.com/ -w /usr/share/wordlist/dirb/big.txt -v\n");
+void help() {
+  const char *items[] = {
+    "\nFLAGS:\n",
+    "\t-u  : URL\n",
+    "\t-w  : Path to a custom wordlist\n",
+    "\t-v  : Verbose output (errors)\n",
+    "\t-r  : Enable recursive mode\n",
+    "\t-ui : User Interface\n",
+    "\t-sh : Check Security Headers\n",
+    "\t-n  : Search for a username on social media (osint)\n",
+    "\t-h  : Display this content\n",
+    "\t-ge : Find email address from Github username\n",
+    "\nKEYWORDS:\n",
+    "\tdir  : Directory mode (default)\n",
+    "\tdns  : Subdomain mode\n",
+    "\tfuzz : Uses fuzzing mode. Replaces the keyword FUZZ in the URL, Headers and the request body\n",
+    "\nEXAMPLES:\n",
+    "\tUsage :\t./csearch dir -u http://example.com/ -r\n",
+    "\tUsage :\t./csearch dns -u example.com -w lists/dns-wordlist.txt -v\n",
+    "\tUsage :\t./csearch fuzz -u http://fuzz.example.com/ -w lists/dns-wordlist.txt\n",
+    "\tUsage :\t./csearch -ui -u http://example.com/\n",
+    "\tUsage :\t./csearch -sh http://example.com/\n",
+    "\tUsage :\t./csearch -ge username\n",
+    "\tUsage :\t./csearch -n username\n"
+  };
+
+  int item = sizeof(items) / sizeof(items[0]);
+
+  for (int i = 0; i < item; i++) {
+    printf("%s", items[i]);
+  }
 }
 /*============================================================================*/
 
